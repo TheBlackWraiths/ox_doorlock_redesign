@@ -1,5 +1,106 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700&display=swap');
-@import url('https://use.typekit.net/qgr5ebd.css');
+@import "tailwindcss";
+@plugin 'tailwindcss-animate';
+@custom-variant dark (&:where(.dark, .dark *));
+@theme inline {
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 1700px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-subtle-foreground: var(--primary-subtle-foreground);
+  --color-destructive-subtle: var(--destructive-subtle);
+  --color-destructive-subtle-foreground: var(--destructive-subtle-foreground);
+  --color-overlay: var(--overlay);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #ffffff;
+  --foreground: #1a1b1e;
+  --card: #ffffff;
+  --card-foreground: #1a1b1e;
+  --popover: #ffffff;
+  --popover-foreground: #1a1b1e;
+  --primary: #4c6ef5;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f3f5;
+  --secondary-foreground: #1a1b1e;
+  --muted: #f1f3f5;
+  --muted-foreground: #868e96;
+  --accent: #f1f3f5;
+  --accent-foreground: #1a1b1e;
+  --destructive: #fa5252;
+  --border: #dee2e6;
+  --input: #dee2e6;
+  --ring: #4c6ef5;
+  --primary-subtle: #edf2ff;
+  --primary-subtle-foreground: #364fc7;
+  --destructive-subtle: #fff5f5;
+  --destructive-subtle-foreground: #e03131;
+  --overlay: rgba(0, 0, 0, 0.8);
+}
+
+.dark {
+  --background: #141517;
+  --foreground: #e9ecef;
+  --card: #1a1b1e;
+  --card-foreground: #e9ecef;
+  --popover: #1a1b1e;
+  --popover-foreground: #e9ecef;
+  --primary: #4c6ef5;
+  --primary-foreground: #ffffff;
+  --secondary: #25262b;
+  --secondary-foreground: #e9ecef;
+  --muted: #2c2e33;
+  --muted-foreground: #909296;
+  --accent: #2c2e33;
+  --accent-foreground: #e9ecef;
+  --destructive: #fa5252;
+  --border: #373a40;
+  --input: #2c2e33;
+  --ring: #4c6ef5;
+  --primary-subtle: #1c2d5a;
+  --primary-subtle-foreground: #91a7ff;
+  --destructive-subtle: #3d2020;
+  --destructive-subtle-foreground: #ff8787;
+  --overlay: rgba(0, 0, 0, 0.8);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 
 html {
   color-scheme: normal !important;
@@ -25,19 +126,16 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* width */
 ::-webkit-scrollbar {
   width: 3px;
   border-radius: 3px;
 }
 
-/* Track */
 ::-webkit-scrollbar-track {
   background: rgb(95, 95, 95);
   border-radius: 3px;
 }
 
-/* Handle */
 ::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 3px;

@@ -6,7 +6,6 @@ import Layout from '../../Layout';
 const Items: React.FC = () => {
   const setItemFields = useSetters((setter) => setter.setItems);
 
-  // Clear empty item fields when leaving the page
   useEffect(() => {
     return () => {
       setItemFields((prevState) => prevState.filter((item, index) => index === 0 || item.name !== ''));

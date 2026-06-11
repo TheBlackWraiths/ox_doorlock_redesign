@@ -1,5 +1,6 @@
-import { Box, Button, Stack, Tooltip } from '@mantine/core';
-import { TbPlus } from 'react-icons/tb';
+import { PlusIcon } from '@/components/icons/plus';
+import { Button } from '@/components/modern-ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/modern-ui/tooltip';
 
 interface Props {
   children: React.ReactNode;
@@ -8,16 +9,17 @@ interface Props {
 
 const Layout: React.FC<Props> = ({ children, setter }) => {
   return (
-    <Stack justify="space-between" align="center" sx={{ height: '100%' }}>
-      <Box sx={{ width: '100%', overflowY: 'auto', height: 410 }}>
-        {children}
-        <Tooltip label="Create a new row" withArrow arrowSize={10}>
-          <Button mt={16} fullWidth variant="light" onClick={setter}>
-            <TbPlus size={24} />
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto p-1">{children}</div>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="secondary" className="mt-3 w-full shrink-0" onClick={setter}>
+            <PlusIcon size={20} />
           </Button>
-        </Tooltip>
-      </Box>
-    </Stack>
+        </TooltipTrigger>
+        <TooltipContent>Create a new row</TooltipContent>
+      </Tooltip>
+    </div>
   );
 };
 

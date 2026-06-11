@@ -1,161 +1,167 @@
-import { ActionIcon, Button, Center, Text, Tooltip } from '@mantine/core';
+import { useState } from 'react';
+import { ClipboardCheckIcon } from '@/components/icons/clipboard-check';
+import { DeleteIcon } from '@/components/icons/delete';
 import { useStore } from '../../store';
 import { fetchNui } from '../../utils/fetchNui';
-import { HiOutlineClipboardCheck, HiOutlineTrash } from 'react-icons/hi';
 import { useClipboard } from '../../store/clipboard';
 import { useVisibility } from '../../store/visibility';
-import { openConfirmModal } from '@mantine/modals';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/modern-ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/modern-ui/tooltip';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 const Submit: React.FC = () => {
   const navigate = useNavigate();
   const clipboard = useClipboard((state) => state.clipboard);
   const setVisible = useVisibility((state) => state.setVisible);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const doorId = useStore((state) => state.id);
+  const doorName = useStore((state) => state.name);
 
   const handleSubmit = () => {
-    const data = { ...useStore.getState() };
-    if (data.name === '') data.name = null;
-    if (data.passcode === '') data.passcode = null;
-    if (data.lockSound === '') data.lockSound = null;
-    if (data.unlockSound === '') data.unlockSound = null;
+    const state = useStore.getState();
+    const items = [];
 
-    data.autolock = data.autolock || null;
-    data.maxDistance = data.maxDistance || 2;
-    data.doorRate = data.doorRate ? data.doorRate + 0.0 : null;
-    data.auto = data.auto || null;
-    data.lockpick = data.lockpick || null;
-    data.hideUi = data.hideUi || null;
-    data.holdOpen = data.holdOpen || null;
-
-    if (data.items && data.items.length > 0) {
-      const items = [];
-
-      for (let i = 0; i < data.items?.length; i++) {
-        const itemField = data.items[i];
+    if (state.items?.length) {
+      for (let i = 0; i < state.items.length; i++) {
+        const itemField = state.items[i];
         if (itemField.name && itemField.name !== '') {
-          if (itemField.metadata === '') itemField.metadata = null;
-          if (!itemField.remove) itemField.remove = null;
-          items.push(itemField);
+          items.push({
+            name: itemField.name,
+            metadata: itemField.metadata === '' ? null : itemField.metadata,
+            remove: itemField.remove || null,
+          });
         }
       }
-
-      // @ts-ignore
-      data.items = items;
     }
 
-    if (data.characters && data.characters.length > 0) {
-      const charactersArr: Array<string | number> = [];
-
-      for (let i = 0; i < data.characters.length; i++) {
-        const characterField = data.characters[i];
+    const charactersArr: Array<string | number> = [];
+    if (state.characters?.length) {
+      for (let i = 0; i < state.characters.length; i++) {
+        const characterField = state.characters[i];
         if (characterField && characterField !== '') {
           charactersArr.push(Number.isNaN(+characterField) ? characterField : +characterField);
         }
       }
-
-      // @ts-ignore
-      data.characters = charactersArr;
     }
 
-    if (data.groups && data.groups.length > 0) {
-      const groupsObj: { [key: string]: number } = {};
-
-      for (let i = 0; i < data.groups.length; i++) {
-        const groupField = data.groups[i];
-        if (groupField.name && groupField.name !== '') groupsObj[groupField.name] = groupField.grade || 0;
+    let groups: Record<string, number> | null = null;
+    if (state.groups?.length) {
+      groups = {};
+      for (let i = 0; i < state.groups.length; i++) {
+        const groupField = state.groups[i];
+        if (groupField.name && groupField.name !== '') {
+          groups[groupField.name] = groupField.grade || 0;
+        }
       }
-
-      // @ts-ignore
-      data.groups = groupsObj;
-    } // @ts-ignore
-    else data.groups = null;
-
-    if (data.lockpickDifficulty && data.lockpickDifficulty.length > 0) {
-      const lockpickArr = [];
-      for (let i = 0; i < data.lockpickDifficulty.length; i++) {
-        const field = data.lockpickDifficulty[i];
-        if (field !== '') lockpickArr.push(field);
-      }
-
-      data.lockpickDifficulty = lockpickArr;
     }
+
+    const lockpickDifficulty = [];
+    if (state.lockpickDifficulty?.length) {
+      for (let i = 0; i < state.lockpickDifficulty.length; i++) {
+        const field = state.lockpickDifficulty[i];
+        if (field !== '') lockpickDifficulty.push(field);
+      }
+    }
+
+    const payload = {
+      ...state,
+      name: state.name === '' ? null : state.name,
+      passcode: state.passcode === '' ? null : state.passcode,
+      lockSound: state.lockSound === '' ? null : state.lockSound,
+      unlockSound: state.unlockSound === '' ? null : state.unlockSound,
+      autolock: state.autolock || null,
+      maxDistance: state.maxDistance || 2,
+      doorRate: state.doorRate ? state.doorRate + 0.0 : null,
+      auto: state.auto || null,
+      lockpick: state.lockpick || null,
+      hideUi: state.hideUi || null,
+      holdOpen: state.holdOpen || null,
+      items,
+      characters: charactersArr,
+      groups,
+      lockpickDifficulty,
+    };
 
     setVisible(false);
-    fetchNui('createDoor', data);
+    fetchNui('createDoor', payload);
   };
 
   return (
-    <Center>
-      <Button color="blue" uppercase onClick={() => handleSubmit()} fullWidth>
-        Confirm door
-      </Button>
-      <Tooltip label={!clipboard ? 'No door settings copied' : 'Apply copied settings'} withArrow arrowSize={10}>
-        <ActionIcon
+    <>
+      <div className="flex shrink-0 items-center gap-3 border-t border-border pt-4">
+        <Button
           variant="outline"
-          disabled={!clipboard}
-          size="lg"
-          ml={16}
-          sx={{ width: 36, height: 36 }}
-          color="blue"
-          onClick={() => {
-            useStore.setState(
-              {
-                name: '',
-                passcode: clipboard.passcode,
-                autolock: clipboard.autolock,
-                items: clipboard.items,
-                characters: clipboard.characters,
-                groups: clipboard.groups,
-                maxDistance: clipboard.maxDistance,
-                doorRate: clipboard.doorRate,
-                lockSound: clipboard.lockSound,
-                unlockSound: clipboard.unlockSound,
-                auto: clipboard.auto,
-                state: clipboard.state,
-                lockpick: clipboard.lockpick,
-                hideUi: clipboard.hideUi,
-                doors: clipboard.doors,
-                lockpickDifficulty: clipboard.lockpickDifficulty,
-                holdOpen: clipboard.holdOpen
-              },
-              true
-            );
-            fetchNui('notify', 'Settings applied');
-          }}
+          className="flex-1 border-primary bg-primary-subtle text-primary-subtle-foreground shadow-sm hover:brightness-110"
+          onClick={handleSubmit}
         >
-          <HiOutlineClipboardCheck size={20} />
-        </ActionIcon>
-      </Tooltip>
-      <ActionIcon
-        variant="outline"
-        size="lg"
-        ml={16}
-        sx={{ width: 36, height: 36 }}
-        color="red"
-        disabled={!useStore.getState().id}
-        onClick={() =>
-          openConfirmModal({
-            title: 'Confirm deletion',
-            centered: true,
-            withCloseButton: false,
-            children: (
-              <Text>
-                Are you sure you want to delete
-                <Text component="span" weight={700}>{` ${useStore.getState().name}`}</Text>?
-              </Text>
-            ),
-            labels: { confirm: 'Confirm', cancel: 'Cancel' },
-            confirmProps: { color: 'red' },
-            onConfirm: () => {
-              fetchNui('deleteDoor', useStore.getState().id);
-              navigate('/')
-            },
-          })
+          Confirm door
+        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={!clipboard}
+              onClick={() => {
+                useStore.setState(
+                  {
+                    name: '',
+                    passcode: clipboard.passcode,
+                    autolock: clipboard.autolock,
+                    items: clipboard.items,
+                    characters: clipboard.characters,
+                    groups: clipboard.groups,
+                    maxDistance: clipboard.maxDistance,
+                    doorRate: clipboard.doorRate,
+                    lockSound: clipboard.lockSound,
+                    unlockSound: clipboard.unlockSound,
+                    auto: clipboard.auto,
+                    state: clipboard.state,
+                    lockpick: clipboard.lockpick,
+                    hideUi: clipboard.hideUi,
+                    doors: clipboard.doors,
+                    lockpickDifficulty: clipboard.lockpickDifficulty,
+                    holdOpen: clipboard.holdOpen,
+                  },
+                  true
+                );
+                fetchNui('notify', 'Settings applied');
+              }}
+            >
+              <ClipboardCheckIcon size={16} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{!clipboard ? 'No door settings copied' : 'Apply copied settings'}</TooltipContent>
+        </Tooltip>
+        <Button
+          variant="outline"
+          size="icon"
+          className="text-destructive hover:text-destructive"
+          disabled={!doorId}
+          onClick={() => setConfirmOpen(true)}
+        >
+          <DeleteIcon size={16} />
+        </Button>
+      </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirm deletion"
+        description={
+          <>
+            Are you sure you want to delete
+            <span className="font-semibold text-foreground">{` ${doorName}`}</span>?
+          </>
         }
-      >
-        <HiOutlineTrash size={20} />
-      </ActionIcon>
-    </Center>
+        destructive
+        onConfirm={() => {
+          fetchNui('deleteDoor', doorId);
+          navigate('/');
+        }}
+      />
+    </>
   );
 };
 

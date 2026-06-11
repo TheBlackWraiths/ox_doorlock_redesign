@@ -1,7 +1,21 @@
-import { Button, NumberInput, Select, Stack } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from '@mantine/form';
-import { useSetters, useStore } from '../../../../../store';
+import { StoreState, useSetters, useStore } from '../../../../../store';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/modern-ui/dialog';
+import { Label } from '@/components/modern-ui/label';
+import { Input } from '@/components/modern-ui/input';
+import { Button } from '@/components/modern-ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/modern-ui/select';
 
 interface Props {
   selectData: { value: string; label: string }[];
@@ -9,14 +23,7 @@ interface Props {
   modal: { opened: boolean; index: number };
 }
 
-interface FormProps {
-  select: string | null;
-  areaSize: number | null;
-  speedMultiplier: number | null;
-}
-
 const DifficultyModal: React.FC<Props> = ({ selectData, setModal, modal }) => {
-  const [select, setSelect] = useState<string | null>(null);
   const lockpickDifficulty = useStore((store) => store.lockpickDifficulty);
   const setLockpickDifficulty = useSetters((setter) => setter.setLockpickDifficulty);
 
@@ -24,78 +31,105 @@ const DifficultyModal: React.FC<Props> = ({ selectData, setModal, modal }) => {
     return lockpickDifficulty[modal.index];
   }, [modal, lockpickDifficulty]);
 
-  useEffect(() => setSelect(typeof lockpickData === 'string' ? lockpickData : 'custom'), [lockpickData]);
+  const [select, setSelect] = useState<string>(
+    typeof lockpickData === 'string' ? lockpickData : 'custom'
+  );
+  const [areaSize, setAreaSize] = useState<string>(
+    typeof lockpickData === 'object' ? String(lockpickData.areaSize ?? '') : ''
+  );
+  const [speedMultiplier, setSpeedMultiplier] = useState<string>(
+    typeof lockpickData === 'object' ? String(lockpickData.speedMultiplier ?? '') : ''
+  );
+  const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<FormProps>({
-    initialValues: {
-      select,
-      areaSize: typeof lockpickData === 'string' ? null : lockpickData.areaSize,
-      speedMultiplier: typeof lockpickData === 'string' ? null : lockpickData.speedMultiplier,
-    },
+  useEffect(() => {
+    if (modal.opened) {
+      setSelect(typeof lockpickData === 'string' ? lockpickData : 'custom');
+      setAreaSize(typeof lockpickData === 'object' ? String(lockpickData.areaSize ?? '') : '');
+      setSpeedMultiplier(typeof lockpickData === 'object' ? String(lockpickData.speedMultiplier ?? '') : '');
+      setError(null);
+    }
+  }, [modal.opened, lockpickData]);
 
-    validate: {
-      select: (value) => (value === null ? 'Difficulty is required' : null),
-      areaSize: (value, values) => (value === null && values.select === 'custom' ? 'Area size is required' : null),
-      speedMultiplier: (value, values) =>
-        value === null && values.select === 'custom' ? 'Speed multiplier is required' : null,
-    },
-  });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
-  useEffect(() => form.setFieldValue('select', select), [select]);
+    if (!select) {
+      setError('Difficulty is required');
+      return;
+    }
 
-  const handleSubmit = (values: FormProps) => {
-    setModal((modal) => ({ ...modal, opened: false }));
+    if (select === 'custom' && (!areaSize || !speedMultiplier)) {
+      setError('Area size and speed multiplier are required for custom difficulty');
+      return;
+    }
+
+    setModal((m) => ({ ...m, opened: false }));
     const data =
-      values.select === 'custom'
-        ? { areaSize: values.areaSize, speedMultiplier: values.speedMultiplier }
-        : values.select;
-    if (!data) return;
+      select === 'custom'
+        ? { areaSize: Number(areaSize), speedMultiplier: Number(speedMultiplier) }
+        : select;
+
     setLockpickDifficulty((prevState) => {
       const array = [...prevState];
-      if (!data) return array;
-      // @ts-ignore
-      array[modal.index] = data;
-
+      array[modal.index] = data as StoreState['lockpickDifficulty'][number];
       return array;
     });
   };
 
   return (
-    <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
-      <Stack>
-        <Select
-          data={selectData}
-          placeholder="Difficulty"
-          {...form.getInputProps('select')}
-          value={select}
-          onChange={setSelect}
-          required
-        />
-        <NumberInput
-          label="Area size"
-          defaultValue={typeof lockpickData === 'object' ? lockpickData.areaSize : undefined}
-          description="Skill check area size in degrees"
-          disabled={select !== 'custom'}
-          max={360}
-          hideControls
-          required={select === 'custom'}
-          {...form.getInputProps('areaSize')}
-        />
-        <NumberInput
-          label="Speed multiplier"
-          description="Number the indicator speed will be multiplied by"
-          disabled={select !== 'custom'}
-          defaultValue={typeof lockpickData === 'object' ? lockpickData.speedMultiplier : undefined}
-          hideControls
-          precision={2}
-          required={select === 'custom'}
-          {...form.getInputProps('speedMultiplier')}
-        />
-        <Button type="submit" uppercase variant="light">
-          Confirm
-        </Button>
-      </Stack>
-    </form>
+    <Dialog open={modal.opened} onOpenChange={(opened) => setModal((m) => ({ ...m, opened }))}>
+      <DialogContent className="max-w-xs border-border bg-card text-card-foreground" hideClose>
+        <DialogHeader>
+          <DialogTitle>Lockpick difficulty</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Difficulty</Label>
+            <Select value={select} onValueChange={setSelect}>
+              <SelectTrigger>
+                <SelectValue placeholder="Difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                {selectData.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="areaSize">Area size</Label>
+            <Input
+              id="areaSize"
+              type="number"
+              max={360}
+              disabled={select !== 'custom'}
+              value={areaSize}
+              onChange={(e) => setAreaSize(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Skill check area size in degrees</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="speedMultiplier">Speed multiplier</Label>
+            <Input
+              id="speedMultiplier"
+              type="number"
+              step={0.01}
+              disabled={select !== 'custom'}
+              value={speedMultiplier}
+              onChange={(e) => setSpeedMultiplier(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Number the indicator speed will be multiplied by</p>
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" variant="secondary" className="w-full">
+            Confirm
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

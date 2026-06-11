@@ -1,5 +1,7 @@
-import { Group, Tooltip, Switch, Box } from '@mantine/core';
-import { BsQuestionCircle } from 'react-icons/bs';
+import { CircleHelpIcon } from '@/components/icons/circle-help';
+import { Switch } from '@/components/modern-ui/switch';
+import { Label } from '@/components/modern-ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/modern-ui/tooltip';
 
 interface Props {
   label: string;
@@ -10,14 +12,24 @@ interface Props {
 
 const TooltipSwitch: React.FC<Props> = ({ infoCircle, label, value, toggle }) => {
   return (
-    <Group spacing={8} align="center">
-      <Switch label={label} checked={value} onChange={() => toggle()} />
-      <Tooltip label={infoCircle} withArrow arrowSize={10} multiline width={200}>
-        <Box sx={{ display: 'flex' }}>
-          <BsQuestionCircle size={18} />
-        </Box>
-      </Tooltip>
-    </Group>
+    <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-secondary px-3 py-2.5">
+      <div className="flex items-center gap-2">
+        <Label htmlFor={label} className="cursor-pointer text-sm font-medium">
+          {label}
+        </Label>
+        {infoCircle && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button type="button" className="text-muted-foreground hover:text-foreground">
+                <CircleHelpIcon size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[220px]">{infoCircle}</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+      <Switch id={label} checked={value} onCheckedChange={() => toggle()} />
+    </div>
   );
 };
 

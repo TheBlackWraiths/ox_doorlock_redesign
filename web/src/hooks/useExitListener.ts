@@ -6,7 +6,6 @@ type FrameVisibleSetter = (bool: boolean) => void;
 
 const LISTENED_KEYS = ['Escape'];
 
-// Basic hook to listen for key presses in NUI in order to exit
 export const useExitListener = (visibleSetter: FrameVisibleSetter, cb?: () => void) => {
   const setterRef = useRef<FrameVisibleSetter>(noop);
 
@@ -18,7 +17,7 @@ export const useExitListener = (visibleSetter: FrameVisibleSetter, cb?: () => vo
     const keyHandler = (e: KeyboardEvent) => {
       if (LISTENED_KEYS.includes(e.code)) {
         setterRef.current(false);
-        cb && cb()
+        cb && cb();
         fetchNui('exit');
       }
     };

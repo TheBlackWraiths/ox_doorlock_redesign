@@ -1,51 +1,47 @@
-import { ActionIcon, CloseButton, createStyles, Group, TextInput, Tooltip } from '@mantine/core';
-import { TbPlus } from 'react-icons/tb';
+import { PlusIcon } from '@/components/icons/plus';
+import { XIcon } from '@/components/icons/x';
 import { useNavigate } from 'react-router-dom';
 import { useVisibility } from '../../../store/visibility';
 import { fetchNui } from '../../../utils/fetchNui';
 import Searchbar from './Search';
 import { useStore, defaultState } from '../../../store';
-
-const useStyles = createStyles({
-  main: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    padding: 16,
-    paddingBottom: 0,
-  },
-});
+import { Button } from '@/components/modern-ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/modern-ui/tooltip';
 
 const Header: React.FC = () => {
-  const { classes } = useStyles();
   const navigate = useNavigate();
   const setVisible = useVisibility((state) => state.setVisible);
 
   return (
-    <Group className={classes.main}>
-      <Tooltip label="Create a new door" transition="pop">
-        <ActionIcon
-          variant="light"
-          color="blue"
-          size="lg"
-          onClick={() => {
-            useStore.setState(defaultState, true);
-            navigate('/settings/general');
-          }}
-        >
-          <TbPlus size={20} />
-        </ActionIcon>
+    <div className="flex items-center gap-3 p-4 pb-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => {
+              useStore.setState(defaultState, true);
+              navigate('/settings/general');
+            }}
+          >
+            <PlusIcon size={20} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Create a new door</TooltipContent>
       </Tooltip>
       <Searchbar />
-      <CloseButton
-        iconSize={20}
-        size="lg"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="shrink-0"
         onClick={() => {
           setVisible(false);
           fetchNui('exit');
         }}
-      />
-    </Group>
+      >
+        <XIcon size={20} />
+      </Button>
+    </div>
   );
 };
 

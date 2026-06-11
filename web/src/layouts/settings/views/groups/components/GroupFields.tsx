@@ -1,6 +1,8 @@
-import { Group, TextInput, NumberInput, ActionIcon, Tooltip } from '@mantine/core';
-import { TbTrash } from 'react-icons/tb';
+import { DeleteIcon } from '@/components/icons/delete';
 import { useStore, useSetters } from '../../../../../store';
+import { Input } from '@/components/modern-ui/input';
+import { Button } from '@/components/modern-ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/modern-ui/tooltip';
 
 const GroupFields: React.FC = () => {
   const groups = useStore((state) => state.groups);
@@ -17,36 +19,33 @@ const GroupFields: React.FC = () => {
   };
 
   return (
-    <>
+    <div className="space-y-3">
       {groups.map((field, index) => (
-        <Group
-          position="center"
-          key={`group-${index}`}
-          mt={index === 0 ? 0 : 16}
-          noWrap
-          spacing={16}
-          sx={{ fontSize: 16 }}
-        >
-          <TextInput
-            sx={{ width: '100%' }}
+        <div key={`group-${index}`} className="flex items-center gap-3">
+          <Input
+            className="flex-1"
             placeholder="Group"
             value={field.name as string}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e.target.value, index, 'name')}
+            onChange={(e) => handleChange(e.target.value, index, 'name')}
           />
-          <NumberInput
-            sx={{ width: '100%' }}
+          <Input
+            className="w-28"
+            type="number"
             placeholder="Grade"
-            value={field.grade as number}
-            onChange={(e) => handleChange(e, index, 'grade')}
+            value={field.grade ?? ''}
+            onChange={(e) => handleChange(e.target.value === '' ? undefined : Number(e.target.value), index, 'grade')}
           />
-          <Tooltip label="Delete row">
-            <ActionIcon color="red.4" variant="transparent" onClick={() => handleRowDelete(index)}>
-              <TbTrash size={24} />
-            </ActionIcon>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRowDelete(index)}>
+                <DeleteIcon size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Delete row</TooltipContent>
           </Tooltip>
-        </Group>
+        </div>
       ))}
-    </>
+    </div>
   );
 };
 

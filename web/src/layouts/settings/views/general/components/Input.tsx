@@ -1,56 +1,43 @@
-import { Box, Grid, Tooltip, TextInput, NumberInput, ThemeIcon } from '@mantine/core';
-
-import { BsQuestionCircle } from 'react-icons/bs';
+import { CircleHelpIcon } from '@/components/icons/circle-help';
+import { Input as TextInput } from '@/components/modern-ui/input';
+import { Label } from '@/components/modern-ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/modern-ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface Props {
   label: string;
   type: 'text' | 'number';
   value?: string | number;
-  setValue: (value: any) => void;
+  setValue: (value: string | number) => void;
   infoCircle?: string;
-  span?: number;
+  className?: string;
 }
 
-const Input: React.FC<Props> = ({ label, type, infoCircle, span, value, setValue }) => {
+const Input: React.FC<Props> = ({ label, type, infoCircle, className, value, setValue }) => {
   return (
-    <Grid.Col span={span || 1}>
-      <Box>
-        {type === 'text' ? (
-          <TextInput
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            label={label}
-            rightSection={
-              infoCircle && (
-                <Tooltip label={infoCircle} withArrow arrowSize={10} multiline width={200}>
-                  <ThemeIcon variant="light" mr={10}>
-                    <BsQuestionCircle size={18} />
-                  </ThemeIcon>
-                </Tooltip>
-              )
-            }
-          />
-        ) : (
-          <NumberInput
-            label={label}
-            step={0.1}
-            precision={1}
-            value={typeof value === 'number' ? value : undefined}
-            onChange={(value) => setValue(value as number)}
-            hideControls
-            rightSection={
-              infoCircle && (
-                <Tooltip label={infoCircle} withArrow arrowSize={10} multiline width={200}>
-                  <ThemeIcon variant="light" mr={10}>
-                    <BsQuestionCircle size={18} />
-                  </ThemeIcon>
-                </Tooltip>
-              )
-            }
-          />
+    <div className={cn('space-y-2', className)}>
+      <div className="flex items-center gap-1.5">
+        <Label className="text-sm font-medium">{label}</Label>
+        {infoCircle && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button type="button" className="text-muted-foreground hover:text-foreground">
+                <CircleHelpIcon size={16} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[200px]">{infoCircle}</TooltipContent>
+          </Tooltip>
         )}
-      </Box>
-    </Grid.Col>
+      </div>
+      <TextInput
+        type={type}
+        value={value ?? ''}
+        step={type === 'number' ? 0.1 : undefined}
+        onChange={(e) =>
+          setValue(type === 'number' ? (e.target.value === '' ? 0 : Number(e.target.value)) : e.target.value)
+        }
+      />
+    </div>
   );
 };
 

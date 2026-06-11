@@ -1,6 +1,8 @@
-import { Group, TextInput, NumberInput, ActionIcon, Tooltip } from '@mantine/core';
-import { TbTrash } from 'react-icons/tb';
+import { DeleteIcon } from '@/components/icons/delete';
 import { useStore, useSetters } from '../../../../../store';
+import { Input } from '@/components/modern-ui/input';
+import { Button } from '@/components/modern-ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/modern-ui/tooltip';
 
 const CharacterFields: React.FC = () => {
   const characters = useStore((state) => state.characters);
@@ -17,30 +19,26 @@ const CharacterFields: React.FC = () => {
   };
 
   return (
-    <>
+    <div className="space-y-3">
       {characters.map((field, index) => (
-        <Group
-          position="center"
-          key={`group-${index}`}
-          mt={index === 0 ? 0 : 16}
-          noWrap
-          spacing={16}
-          sx={{ fontSize: 16 }}
-        >
-          <TextInput
-            sx={{ width: '100%' }}
+        <div key={`group-${index}`} className="flex items-center gap-3">
+          <Input
+            className="flex-1"
             placeholder="Character Id"
             value={field as string}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(e.target.value, index)}
+            onChange={(e) => handleChange(e.target.value, index)}
           />
-          <Tooltip label="Delete row">
-            <ActionIcon color="red.4" variant="transparent" onClick={() => handleRowDelete(index)}>
-              <TbTrash size={24} />
-            </ActionIcon>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRowDelete(index)}>
+                <DeleteIcon size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Delete row</TooltipContent>
           </Tooltip>
-        </Group>
+        </div>
       ))}
-    </>
+    </div>
   );
 };
 

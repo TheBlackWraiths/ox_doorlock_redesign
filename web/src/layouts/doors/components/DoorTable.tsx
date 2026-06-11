@@ -1,4 +1,3 @@
-import { Table, UnstyledButton, Text, Group, Center, Stack, Pagination } from '@mantine/core';
 import {
   ColumnDef,
   flexRender,
@@ -10,10 +9,23 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
-import { TbSelector, TbChevronDown, TbChevronUp, TbSearch } from 'react-icons/tb';
+import { ArrowDownIcon } from '@/components/icons/arrow-down';
+import { ArrowUpIcon } from '@/components/icons/arrow-up';
+import { ChevronsUpDownIcon } from '@/components/icons/chevrons-up-down';
+import { SearchIcon } from '@/components/icons/search';
 import { useSearch } from '../../../store/search';
 import { useDoors, type DoorColumn } from '../../../store/doors';
 import ActionsMenu from './ActionsMenu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/modern-ui/table';
+import { Button } from '@/components/modern-ui/button';
+import { cn } from '@/lib/utils';
 
 const DoorTable: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -29,7 +41,7 @@ const DoorTable: React.FC = () => {
         accessorKey: 'id',
         cell: (info) => info.getValue(),
         enableHiding: false,
-        enableGlobalFilter: false, // id is of type number so it breaks filter function
+        enableGlobalFilter: false,
       },
       {
         id: 'name',
@@ -78,56 +90,86 @@ const DoorTable: React.FC = () => {
     table.setPageIndex(currentPage - 1);
   }, [currentPage, data]);
 
+  const filteredRows = table.getFilteredRowModel().rows;
+
   return (
-    <Stack justify="space-between" align="center" sx={{ height: '100%', paddingBottom: 16 }} spacing={0}>
-      {table.getFilteredRowModel().rows.length > 0 ? (
-        <Table>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id}>
-                    <UnstyledButton onClick={header.column.getToggleSortingHandler()}>
-                      <Group>
-                        <Text>{flexRender(header.column.columnDef.header, header.getContext())}</Text>
+    <div className="flex h-full flex-col items-center justify-between px-4 pb-4">
+      {filteredRows.length > 0 ? (
+        <div className="w-full overflow-auto">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 hover:text-foreground"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getIsSorted() === 'desc' ? (
-                          <TbChevronDown />
+                          <ArrowDownIcon size={16} />
                         ) : header.column.getIsSorted() === 'asc' ? (
-                          <TbChevronUp />
+                          <ArrowUpIcon size={16} />
                         ) : !header.column.getCanHide() ? (
-                          <TbSelector />
-                        ) : (
-                          <></>
-                        )}
-                      </Group>
-                    </UnstyledButton>
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getAllCells().map((cell) => (
-                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+                          <ChevronsUpDownIcon size={16} className="opacity-50" />
+                        ) : null}
+                      </button>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getAllCells().map((cell) => (
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
-        <Center sx={{ height: '100%' }}>
-          <Stack align="center">
-            <TbSearch size={48} />
-            <Text size="lg">No results found</Text>
-          </Stack>
-        </Center>
+        <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
+          <SearchIcon size={48} className="opacity-50" />
+          <p className="text-lg font-medium">No results found</p>
+        </div>
       )}
       {table.getPageCount() > 1 && (
-        <Pagination page={currentPage} total={table.getPageCount()} onChange={(e) => setCurrentPage(e)} />
+        <div className="mt-4 flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage <= 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+          >
+            Previous
+          </Button>
+          {Array.from({ length: table.getPageCount() }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              variant={page === currentPage ? 'default' : 'outline'}
+              size="sm"
+              className={cn('min-w-9')}
+              onClick={() => setCurrentPage(page)}
+            >
+              {page}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage >= table.getPageCount()}
+            onClick={() => setCurrentPage((p) => p + 1)}
+          >
+            Next
+          </Button>
+        </div>
       )}
-    </Stack>
+    </div>
   );
 };
 

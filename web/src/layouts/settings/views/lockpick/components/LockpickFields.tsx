@@ -1,8 +1,11 @@
-import { useSetters, useStore } from '../../../../../store';
-import { ActionIcon, Group, Modal, Select, Tooltip } from '@mantine/core';
 import { useState } from 'react';
-import { TbSettings, TbTrash } from 'react-icons/tb';
+import { DeleteIcon } from '@/components/icons/delete';
+import { SettingsIcon } from '@/components/icons/settings';
+import { useSetters, useStore } from '../../../../../store';
 import DifficultyModal from '../../characters/components/DifficultyModal';
+import { Input } from '@/components/modern-ui/input';
+import { Button } from '@/components/modern-ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/modern-ui/tooltip';
 
 const selectData: { label: string; value: string }[] = [
   { label: 'Easy', value: 'easy' },
@@ -20,47 +23,41 @@ const LockpickFields: React.FC = () => {
     setLockpickFields((prevState) => prevState.filter((obj, indx) => indx !== index));
   };
 
+  const getDisplayValue = (field: (typeof lockpickFields)[number]) => {
+    if (typeof field === 'string') {
+      return selectData.find((d) => d.value === field)?.label ?? field;
+    }
+    return 'Custom';
+  };
+
   return (
-    <>
+    <div className="space-y-3">
       {lockpickFields.map((field, index) => (
-        <Group
+        <div
           key={`${typeof field === 'string' ? field : field.areaSize}-${index}`}
-          sx={{ width: '100%' }}
-          spacing={16}
-          mt={index === 0 ? undefined : 16}
-          position="apart"
+          className="flex items-center gap-3"
         >
-          <Select
-            data={selectData}
-            value={typeof field === 'string' ? field : 'custom'}
-            readOnly
-            placeholder="Edit row to select value"
-            sx={{ width: '80%' }}
-          />
-          <Tooltip label="Edit row">
-            <ActionIcon color="blue.4" variant="transparent" onClick={() => setModal({ opened: true, index })}>
-              <TbSettings size={24} />
-            </ActionIcon>
+          <Input className="flex-1" readOnly value={getDisplayValue(field)} placeholder="Edit row to select value" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setModal({ opened: true, index })}>
+                <SettingsIcon size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit row</TooltipContent>
           </Tooltip>
-          <Tooltip label="Delete row">
-            <ActionIcon color="red.4" variant="transparent" onClick={() => handleRowDelete(index)}>
-              <TbTrash size={24} />
-            </ActionIcon>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRowDelete(index)}>
+                <DeleteIcon size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Delete row</TooltipContent>
           </Tooltip>
-        </Group>
+        </div>
       ))}
-      <Modal
-        opened={modal.opened}
-        onClose={() => setModal({ ...modal, opened: false })}
-        transition="fade"
-        title="Lockpick difficulty"
-        centered
-        size="xs"
-        withCloseButton={false}
-      >
-        <DifficultyModal selectData={selectData} setModal={setModal} modal={modal} />
-      </Modal>
-    </>
+      <DifficultyModal selectData={selectData} setModal={setModal} modal={modal} />
+    </div>
   );
 };
 
